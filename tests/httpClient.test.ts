@@ -3,7 +3,8 @@ import {
     beforeAll,beforeEach, afterAll,
 } from '@jest/globals';
 import HttpClient from '../src/httpClient';
-const { retryWithBackoff } = require('../src/retry');
+import { retryWithBackoff } from '../src/retry';
+
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
 
