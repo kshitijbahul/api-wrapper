@@ -62,12 +62,25 @@ class HttpClient {
 
         if (this.inProgressDomainRequestCounter.get(domainIdentifier) >= this.concurrentDomianRequestLimit) {
             console.log('Max reuests for domain reached Queue Request for URL ', url);
-            // queue the request
+            return this.queueRequest(url, domainIdentifier);
         }
         console.log('Permornign request for  ', url);
         return this.performRequest(url, domainIdentifier);
     }
-    
+    /*
+        This method for the queuing of a request
+    */
+    queueRequest(url:string, domainIdentifier:string): Promise<any> {
+        // Ensuring a key is set for the domain before we do a push
+        if (!this.requestQueue.has(domainIdentifier)) {
+            this.requestQueue.set(domainIdentifier, []);
+        }
+
+        return new Promise((resolve, reject) => {
+            console.log('Max requests in Progress Queue Request for URL ', url);
+            this.requestQueue.get(domainIdentifier).push({ url, resolve, reject });
+        });
+    }
     /*
         Method to perform a request
         - It will increase the counter for ongoing request
@@ -117,7 +130,9 @@ class HttpClient {
         this.requestsInProgress.delete(url);
         console.log('OnRequestComplete is called now checking if there are any pending requests');
         // Check if there are any pending requests for the domain
-        
+        if (this.requestQueue.has(domainIdentifier) && this.requestQueue.get(domainIdentifier).length > 0) {
+            this.processNextRequest(domainIdentifier);
+        }
     }
     /*
         Method to process the next request in the queue
@@ -125,7 +140,12 @@ class HttpClient {
         - It will call the getData method to perform the request
     */
     processNextRequest(domainIdentifier):void {
-        
+        // We usw shift to enure that we process the request in the order they are queued(FIFO)
+        const { url: nextUrl, resolve, reject } = this.requestQueue.get(domainIdentifier).shift();
+        // We call getData to perform the request to take advantage of the 
+        // fact that if incase when we dequeu a request and have a same request that has now come , both can be processed and possibly use the promise of each other
+        // We could also call performRequest here and skip the pre processing of getData
+        this.getData(nextUrl).then(resolve).catch(reject);
     }
 }
 
