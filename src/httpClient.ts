@@ -20,8 +20,8 @@ class HttpClient {
         value : Array of requests
     */
     requestQueue: Map<string, Array<queueRequestType>>;
-    constructor() {
-        this.concurrentDomianRequestLimit = 3;
+    constructor(concurrencyLimit:number) {
+        this.concurrentDomianRequestLimit = concurrencyLimit;
         this.requestsInProgress = new Map();
         this.inProgressDomainRequestCounter = new Map();
         this.requestQueue = new Map();

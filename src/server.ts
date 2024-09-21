@@ -1,13 +1,14 @@
 import express, { Request, Response, Application } from 'express';
 import bodyParser from 'body-parser';
 import HttpClient from './httpClient';
+import { applicationPort as port } from './configs';
+import { concurrentDomianRequestLimit } from './configs';
 
 // Initialize Express app
 const app: Application = express();
-const port = process.env.PORT || 3000;
 app.use(bodyParser.json()); // Parse JSON body
 
-const httpClient = new HttpClient();
+const httpClient = new HttpClient(concurrentDomianRequestLimit);
 
 app.post('/proxy', async (req: Request, res: Response) => {
     try {
