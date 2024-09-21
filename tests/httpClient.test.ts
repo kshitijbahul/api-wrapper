@@ -1,6 +1,6 @@
 import {
-    describe, expect, test, beforeAll,
-    beforeEach, afterAll,
+    describe, expect, test,
+    beforeAll,beforeEach, afterAll,
 } from '@jest/globals';
 import HttpClient from '../src/httpClient';
 

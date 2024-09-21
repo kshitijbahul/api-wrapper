@@ -23,11 +23,13 @@ app.post('/proxy', async (req: Request, res: Response) => {
 
         // Use HttpClient to perform the request
         const result = await httpClient.getData(url);
+        // Debugging
+        console.log('test result is', result);
 
         // Return the result from the external service
-        res.json(result);
+        // TODO get the response code as well
+        res.status(200).json(result);
     } catch (error: any) {
-        // Handle any errors from HttpClient
         res.status(500).json({ error: error.message });
     }
 });
@@ -35,3 +37,5 @@ app.post('/proxy', async (req: Request, res: Response) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+export default app;
