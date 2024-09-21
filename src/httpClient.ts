@@ -6,7 +6,11 @@
     getData: (requestUrl: string) => Promise<any>;
 } */
 
-
+type queueRequestType = {
+    url: string;
+    resolve: (value: Promise<any>) => void;
+    reject: (reason?: Promise<any>) => void;
+};
 class HttpClient {
     concurrentDomianRequestLimit: number;
     /*
@@ -26,7 +30,7 @@ class HttpClient {
         key :  Unique Domian
         value : Array of requests
     */
-    requestQueue: Map<string, Array<string>>;
+    requestQueue: Map<string, Array<queueRequestType>>;
     constructor() {
         this.concurrentDomianRequestLimit = 3;
         this.requestsInProgress = new Map();
@@ -60,11 +64,11 @@ class HttpClient {
             this.inProgressDomainRequestCounter.set(domainIdentifier, 0);
         }
 
-        if (this.inProgressDomainRequestCounter.get(domainIdentifier) >= this.concurrentDomianRequestLimit) {
+        if (this.inProgressDomainRequestCounter.get(domainIdentifier)! >= this.concurrentDomianRequestLimit) {
             console.log('Max reuests for domain reached Queue Request for URL ', url);
             return this.queueRequest(url, domainIdentifier);
         }
-        console.log('Permornign request for  ', url);
+        console.log('Performing request for  ', url);
         return this.performRequest(url, domainIdentifier);
     }
     /*
@@ -78,7 +82,7 @@ class HttpClient {
 
         return new Promise((resolve, reject) => {
             console.log('Max requests in Progress Queue Request for URL ', url);
-            this.requestQueue.get(domainIdentifier).push({ url, resolve, reject });
+            this.requestQueue.get(domainIdentifier)!.push({ url, resolve, reject });
         });
     }
     /*
@@ -96,15 +100,12 @@ class HttpClient {
 
         const requestPromise = fetch(url)
                                 .then((response) => {
-                                    console.log('Timeout is called');
-                                    console.log('Fetch is called ');
                                     if (!response.ok) {
                                         throw new Error(`HTTP error! status: ${response.status}`);
                                     }
                                     return response.json();
                                 })
                                 .finally(() => {
-                                    console.log('Finally is called');
                                     this.onRequestComplete(url, domainIdentifier);
                                 });
 
@@ -120,7 +121,7 @@ class HttpClient {
     */
     onRequestComplete(url:string, domainIdentifier:string):void {
         // Remove the request from the domain counter 
-        const currentCount = this.inProgressDomainRequestCounter.get(domainIdentifier);
+        const currentCount = this.inProgressDomainRequestCounter.get(domainIdentifier) ?? 0;
         if (currentCount === 1) {
             this.inProgressDomainRequestCounter.delete(domainIdentifier);
         } else {
@@ -130,7 +131,7 @@ class HttpClient {
         this.requestsInProgress.delete(url);
         console.log('OnRequestComplete is called now checking if there are any pending requests');
         // Check if there are any pending requests for the domain
-        if (this.requestQueue.has(domainIdentifier) && this.requestQueue.get(domainIdentifier).length > 0) {
+        if (this.requestQueue.has(domainIdentifier) && this.requestQueue.get(domainIdentifier)!.length > 0) {
             this.processNextRequest(domainIdentifier);
         }
     }
@@ -139,9 +140,9 @@ class HttpClient {
         - It will get the next request from the queue
         - It will call the getData method to perform the request
     */
-    processNextRequest(domainIdentifier):void {
+    processNextRequest(domainIdentifier:string):void {
         // We usw shift to enure that we process the request in the order they are queued(FIFO)
-        const { url: nextUrl, resolve, reject } = this.requestQueue.get(domainIdentifier).shift();
+        const { url: nextUrl, resolve, reject } = this.requestQueue.get(domainIdentifier)!.shift()!;
         // We call getData to perform the request to take advantage of the 
         // fact that if incase when we dequeu a request and have a same request that has now come , both can be processed and possibly use the promise of each other
         // We could also call performRequest here and skip the pre processing of getData
