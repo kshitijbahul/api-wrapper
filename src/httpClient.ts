@@ -1,16 +1,5 @@
-/* type HttpClientType = {
-    concurrentDomianRequestLimit: number;
-    requestInProgress: Map<string, Promise<any>>;
-    inProgressDomainRequestCounter: Map<string, number>;
-    requestQueue: Map<string, Array<string>>;
-    getData: (requestUrl: string) => Promise<any>;
-} */
+import queueRequestType from './types/queueRequest.type';
 
-type queueRequestType = {
-    url: string;
-    resolve: (value: Promise<any>) => void;
-    reject: (reason?: Promise<any>) => void;
-};
 class HttpClient {
     concurrentDomianRequestLimit: number;
     /*
@@ -129,7 +118,6 @@ class HttpClient {
         }
         // Remove the request from the requestInProgress
         this.requestsInProgress.delete(url);
-        console.log('OnRequestComplete is called now checking if there are any pending requests');
         // Check if there are any pending requests for the domain
         if (this.requestQueue.has(domainIdentifier) && this.requestQueue.get(domainIdentifier)!.length > 0) {
             this.processNextRequest(domainIdentifier);
