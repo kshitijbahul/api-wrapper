@@ -3,10 +3,14 @@ import {
     beforeAll,beforeEach, afterAll,
 } from '@jest/globals';
 import HttpClient from '../src/httpClient';
-
-
+const { retryWithBackoff } = require('../src/retry');
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
+
+// Mocking retry
+jest.mock('../src/retry', () => ({
+    retryWithBackoff: jest.fn(),
+}));
 
 describe('Test HttpClient Wrapper', () => {
     let httpClient: HttpClient;
@@ -17,6 +21,8 @@ describe('Test HttpClient Wrapper', () => {
 
     beforeEach(() => {
         httpClient = new HttpClient(2);
+        // Mock retryWithBackoff to call the function immediately
+        retryWithBackoff.mockImplementation((fn) => fn());
         (fetch as jest.Mock).mockClear();
     });
 

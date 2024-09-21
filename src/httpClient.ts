@@ -1,4 +1,6 @@
 import queueRequestType from './types/queueRequest.type';
+import { retries, retryDelay } from './configs';
+import { retryWithBackoff } from './retry';
 
 class HttpClient {
     concurrentDomianRequestLimit: number;
@@ -57,7 +59,6 @@ class HttpClient {
             console.log('Max reuests for domain reached Queue Request for URL ', url);
             return this.queueRequest(url, domainIdentifier);
         }
-        console.log('Performing request for  ', url);
         return this.performRequest(url, domainIdentifier);
     }
     /*
@@ -87,17 +88,19 @@ class HttpClient {
             (this.inProgressDomainRequestCounter.get(domainIdentifier) ?? 0) + 1
         );
 
-        const requestPromise = fetch(url)
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        throw new Error(`HTTP error! status: ${response.status}`);
-                                    }
-                                    return response.json();
-                                })
-                                .finally(() => {
-                                    this.onRequestComplete(url, domainIdentifier);
-                                });
-
+        const requestPromise = retryWithBackoff(()=>
+                fetch(url)
+                .then((response) => {
+                    console.log('Fetch is called ');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+            ,retries, retryDelay)
+            .finally(() => {
+                this.onRequestComplete(url, domainIdentifier);
+            });
         this.requestsInProgress.set(url, requestPromise);
 
         return requestPromise;
