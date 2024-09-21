@@ -1,0 +1,19 @@
+{
+  "name": "concurrent-http-requests",
+  "version": "0.0.1",
+  "description": "API wrapper for an API to implement a set of optimizations and network communication policies at the API layer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "author": "Kshitij Bahul",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.11.0",
+    "eslint": "^9.11.0",
+    "globals": "^15.9.0",
+    "jest": "^29.7.0"
+  }
+}
