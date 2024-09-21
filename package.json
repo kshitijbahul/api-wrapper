@@ -4,9 +4,9 @@
   "description": "API wrapper for an API to implement a set of optimizations and network communication policies at the API layer.",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d dist",
-    "start": "tsc && node dist/server.js",
-    "dev": "tsc && babel-node src/server.js",
+    "build": "babel src --extensions '.ts' --out-dir dist",
+    "start": "npm run build && node dist/server.js",
+    "dev": "npm run build && node dist/server.js",
     "test": "jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
