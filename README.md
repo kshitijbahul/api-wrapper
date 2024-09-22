@@ -44,9 +44,6 @@ The App can be tested in the following ways
    
    ```sh
    curl --location 'localhost:3000/api/v1/proxy' --header 'Content-Type: application/json' --data '{"url": "https://httpbin1.org/get"}'
-   
-   
-
 
 ## Local Run Instructions Using Node.js
 
@@ -106,9 +103,5 @@ The App can be tested in the following ways
    
    Here is a sample curl request that can be used to test the application
    ```sh
-   curl --location 'localhost:3000/api/v1/proxy'
-   --header 'Content-Type: application/json' \
-   --data '{
-    "url": "https://httpbin.org/get"
-    }'
+   curl --location 'localhost:3000/api/v1/proxy' --header 'Content-Type: application/json' --data '{"url": "https://httpbin1.org/get"}'
 > **Note:** If you have changed the port in the step ***Step 4 above***, change the port in the sample above accordingly.
