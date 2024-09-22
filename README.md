@@ -1,5 +1,9 @@
 This Repository creates an API wrapper around an existing API to  implement asome optimizations and network communication policies.
 
+### Swagger Docs
+
+http://localhost:3000/api-docs/
+
 ### Assumptions 
 - We get only https or http requests
 - We recieve GET requests 

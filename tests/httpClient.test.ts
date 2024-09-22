@@ -23,7 +23,7 @@ describe('Test HttpClient Wrapper', () => {
     beforeEach(() => {
         httpClient = new HttpClient(2);
         // Mock retryWithBackoff to call the function immediately
-        retryWithBackoff.mockImplementation((fn) => fn());
+        (retryWithBackoff as jest.Mock).mockImplementation((fn) => fn());
         (fetch as jest.Mock).mockClear();
     });
 

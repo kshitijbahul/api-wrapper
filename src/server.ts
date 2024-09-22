@@ -1,41 +1,35 @@
-import express, { Request, Response, Application } from 'express';
-import bodyParser from 'body-parser';
-import HttpClient from './httpClient';
-import { applicationPort as port } from './configs';
-import { concurrentDomianRequestLimit } from './configs';
+import express from 'express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import proxyRouter from './routes/proxy';
+const basePath = '/api/v1';
+const app = express();
 
-// Initialize Express app
-const app: Application = express();
-app.use(bodyParser.json()); // Parse JSON body
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API Documentation',
+      version: '1.0.0',
+      description: 'API documentation for the project',
+    },
+    servers: [
+        {
+          url: `http://localhost:3000${basePath}`,
+          description: 'Development server',
+        },
+    ],
+  },
+  apis: ['./src/routes/proxy.ts'],
+};
 
-const httpClient = new HttpClient(concurrentDomianRequestLimit);
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+console.log('swaggerDocs is ', swaggerDocs);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.post('/proxy', async (req: Request, res: Response) => {
-    try {
-        const { url, method = 'GET' } = req.body;
-        // If the method is not GET, return an error 
-        if (method && method.toUpperCase() !== 'GET') {
-            return res.status(400).json({ error: 'Only GET requests are supported' });
-        }
-        if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
-        }
-
-        // Use HttpClient to perform the request
-        const result = await httpClient.getData(url);
-        // Debugging
-        console.log('test result is', result);
-
-        // Return the result from the external service
-        // TODO get the response code as well
-        res.status(200).json(result);
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
-    }
+app.use(express.json());
+app.use(basePath, proxyRouter); 
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
 });
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-
 export default app;
