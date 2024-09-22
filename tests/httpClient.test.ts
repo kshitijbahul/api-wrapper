@@ -1,6 +1,6 @@
 import {
     describe, expect, test,
-    beforeAll,beforeEach, afterAll,
+    beforeAll, beforeEach, afterAll,
 } from '@jest/globals';
 import HttpClient from '../src/httpClient';
 import { retryWithBackoff } from '../src/retry';
@@ -8,7 +8,7 @@ import { retryWithBackoff } from '../src/retry';
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
 
-// Mocking retry
+// Mocking retryWithBackoff
 jest.mock('../src/retry', () => ({
     retryWithBackoff: jest.fn(),
 }));
@@ -17,12 +17,12 @@ describe('Test HttpClient Wrapper', () => {
     let httpClient: HttpClient;
 
     beforeAll(() => {
-        // Any setup if needed
+        // Any global setup if needed
     });
 
     beforeEach(() => {
-        httpClient = new HttpClient(2);
-        // Mock retryWithBackoff to call the function immediately
+        httpClient = new HttpClient(2); // Set concurrency limit to 2
+        // Mock retryWithBackoff to directly call the provided function
         (retryWithBackoff as jest.Mock).mockImplementation((fn) => fn());
         (fetch as jest.Mock).mockClear();
     });
@@ -31,7 +31,7 @@ describe('Test HttpClient Wrapper', () => {
         jest.resetAllMocks();
     });
 
-    test('Should get Data from a URL', async () => {
+    test('Should get data from a URL', async () => {
         const url = 'https://httpbin.org/get?param=1';
         // Mock fetch response
         (fetch as jest.Mock).mockResolvedValueOnce({
@@ -44,7 +44,7 @@ describe('Test HttpClient Wrapper', () => {
         expect(fetch).toHaveBeenCalledWith(url);
     });
 
-    test('Should return an error if the Downstream API returns an error', async () => {
+    test('Should return an error if the downstream API returns an error', async () => {
         const url = 'https://httpbin.org/get?param=1';
 
         // Mock fetch to return a 500 error
@@ -55,21 +55,20 @@ describe('Test HttpClient Wrapper', () => {
         });
 
         await expect(httpClient.getData(url)).rejects.toThrow('HTTP error! status: 500');
-
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('should treat lowercase and uppercase URLs as the same request', async () => {
+    test('Should treat lowercase and uppercase URLs as the same request', async () => {
         const urlLowerCase = 'https://httpbin.org/get?param=1';
         const urlUpperCase = 'HTTPS://HTTPBIN.ORG/GET?PARAM=1';
 
         // Mock fetch response
-        (fetch as jest.Mock).mockResolvedValue({
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             json: jest.fn().mockResolvedValue({ success: true }),
         });
 
-        // Make 2 requests: one with uppercase URL
+        // Make 2 requests, one with lowercase and one with uppercase URL
         const [data1, data2] = await Promise.all([httpClient.getData(urlLowerCase), httpClient.getData(urlUpperCase)]);
 
         expect(data1).toEqual({ success: true });
@@ -79,7 +78,7 @@ describe('Test HttpClient Wrapper', () => {
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('should treat mixed-case URLs as the same request', async () => {
+    test('Should treat mixed-case URLs as the same request', async () => {
         const urlLowerCase = 'https://httpbin.org/get?param=1';
         const urlMixedCase = 'https://Httpbin.org/Get?Param=1';
 
@@ -89,7 +88,7 @@ describe('Test HttpClient Wrapper', () => {
             json: jest.fn().mockResolvedValue({ success: true }),
         });
 
-        // Make two requests: one with lowercase and one with mixed-case URL
+        // Make 2 requests, one with lowercase and one with mixed-case URL
         const [data1, data2] = await Promise.all([httpClient.getData(urlLowerCase), httpClient.getData(urlMixedCase)]);
 
         expect(data1).toEqual({ success: true });
@@ -99,26 +98,26 @@ describe('Test HttpClient Wrapper', () => {
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('should not treat https and http URLs to be same', async () => {
-        const urlLowerCase = 'https://httpbin.org/get?param=1';
-        const urlMixedCase = 'http://Httpbin.org/Get?Param=1';
+    test('Should not treat https and http URLs as the same', async () => {
+        const urlHttps = 'https://httpbin.org/get?param=1';
+        const urlHttp = 'http://Httpbin.org/Get?Param=1';
 
         // Mock fetch response
-        (fetch as jest.Mock).mockResolvedValueOnce({
+        (fetch as jest.Mock).mockResolvedValue({
             ok: true,
             json: jest.fn().mockResolvedValue({ success: true }),
         });
 
-        const [data1, data2] = await Promise.all([httpClient.getData(urlLowerCase), httpClient.getData(urlMixedCase)]);
+        const [data1, data2] = await Promise.all([httpClient.getData(urlHttps), httpClient.getData(urlHttp)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
 
-        // Two fetch call should be made
+        // Two fetch calls should be made since https and http URLs are different
         expect(fetch).toHaveBeenCalledTimes(2);
     });
 
-    test('Should use response of an in-flight request', async () => {
+    test('Should use the response of an in-flight request', async () => {
         const url = 'https://httpbin.org/get?param=1';
 
         // Mock fetch
@@ -127,16 +126,17 @@ describe('Test HttpClient Wrapper', () => {
             json: jest.fn().mockResolvedValue({ success: true }),
         });
 
-        // Initiate two concurrent requests
+        // Initiate two concurrent requests for the same URL
         const [data1, data2] = await Promise.all([httpClient.getData(url), httpClient.getData(url)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
-        // Only one fetch call should be made
+
+        // Only one fetch call should be made since the same URL is in-flight
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('Should queue up requests to an endpoint after its already serving 2 request', async () => {
+    test('Should queue up requests to an endpoint after reaching concurrency limit', async () => {
         const urls = [
             'https://httpbin.org/get?param=1',
             'https://httpbin.org/get?param=2',
@@ -152,18 +152,17 @@ describe('Test HttpClient Wrapper', () => {
             })
         );
 
-        // Initiate four requests; the fourth should be queued
+        // Initiate four requests; the fourth should be queued due to concurrency limit
         const promises = urls.map((url) => httpClient.getData(url));
 
-        // Initially, only 3 fetch calls should be made
+        // Initially, only 2 fetch calls should be made due to concurrency limit
         expect(fetch).toHaveBeenCalledTimes(2);
 
         // Resolve one of the in-flight requests
-        // For simplicity, we'll simulate onRequestComplete by waiting briefly
+        // Simulate `onRequestComplete` by waiting briefly
         await new Promise((resolve) => setImmediate(resolve));
 
-        // After the first three complete, the fourth should be fetched
-        // all should have been called by now since fetch is mocked
+        // After one request completes, the next should start
         expect(fetch).toHaveBeenCalledTimes(4);
 
         // Await all promises
@@ -174,7 +173,30 @@ describe('Test HttpClient Wrapper', () => {
         });
     });
 
-    test('Should enforce concurrency check, with 4 calls to the same API with different params', async () => {
-        // Implement the test logic here
+    test('Should enforce concurrency check with 4 calls to the same API with different params', async () => {
+        const urls = [
+            'https://httpbin.org/get?param=1',
+            'https://httpbin.org/get?param=2',
+            'https://httpbin.org/get?param=3',
+            'https://httpbin.org/get?param=4',
+        ];
+
+        // Mock fetch to resolve for each request
+        (fetch as jest.Mock).mockImplementation(() =>
+            Promise.resolve({
+                ok: true,
+                json: jest.fn().mockResolvedValue({ success: true }),
+            })
+        );
+
+        const promises = urls.map((url) => httpClient.getData(url));
+
+        // All should resolve with the same mocked result
+        const results = await Promise.all(promises);
+
+        expect(fetch).toHaveBeenCalledTimes(4); // Ensure 4 calls were made
+        results.forEach((result) => {
+            expect(result).toEqual({ success: true });
+        });
     });
 });
