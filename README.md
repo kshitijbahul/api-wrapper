@@ -41,12 +41,11 @@ The App can be tested in the following ways
 2. ***Using the Curl Requests***:
    
    Here is a sample curl request that can be used to test the application
+   
    ```sh
-   curl --location 'localhost:3000/api/v1/proxy'
-   --header 'Content-Type: application/json' \
-   --data '{
-    "url": "https://httpbin.org/get"
-    }'
+   curl --location 'localhost:3000/api/v1/proxy' --header 'Content-Type: application/json' --data '{"url": "https://httpbin1.org/get"}'
+   
+   
 
 
 ## Local Run Instructions Using Node.js
