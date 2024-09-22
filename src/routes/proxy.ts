@@ -46,17 +46,25 @@ proxyRouter.post('/proxy', async (req: Request, res: Response) => {
         if (method && method.toUpperCase() !== 'GET') {
             return res.status(400).json({ error: 'Only GET requests are supported' });
         }
-        if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
+        if (!url || typeof url !== 'string') {
+            return res.status(400).json({ error: 'Invalid URL' });
         }
         // TODO - Add validation for URL
+        try {
+            const validUrl = new URL(url);
+            if (!['http:', 'https:'].includes(validUrl.protocol)) {
+                return res.status(400).json({ error: 'Invalid URL protocol' });
+            }
+        } catch (error) {
+            return res.status(400).json({ error: `Invalid URL : ${url}` });
+        }
         // TODO - Get the Response code from the call to the URL
         const result = await httpClient.getData(url);
         console.log('test result is', result);
 
         res.status(200).json(result);
     } catch (error: any) {
-        console.log('error is ', error);
+        console.error(`Error fetching data from ${req.body.url}:`, error);
         res.status(500).json({ error: error.message });
     }
 });

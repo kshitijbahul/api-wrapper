@@ -23,6 +23,9 @@ class HttpClient {
     */
     requestQueue: Map<string, Array<queueRequestType>>;
     constructor(concurrencyLimit:number) {
+        if (concurrencyLimit <= 0) {
+            throw new Error('Concurrency limit must be a positive integer');
+        }
         this.concurrentDomainRequestLimit = concurrencyLimit;
         this.requestsInProgress = new Map();
         this.inProgressDomainRequestCounter = new Map();
