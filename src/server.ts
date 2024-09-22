@@ -20,7 +20,7 @@ const swaggerOptions = {
         },
     ],
   },
-  apis: ['./src/routes/proxy.ts'],
+  apis: process.env.NODE_ENV === 'production' ? ['./dist/routes/proxy.js'] : ['./src/routes/proxy.ts'],
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
