@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
-import HttpClient from '../httpClient';  // Adjust the import based on the correct path
-import { concurrentDomianRequestLimit } from '../configs';
+import HttpClient from '../httpClient';
+import { concurrentDomainRequestLimit } from '../configs';
 
 const proxyRouter = Router();
-const httpClient = new HttpClient(concurrentDomianRequestLimit);  // Use appropriate configurations if needed
+const httpClient = new HttpClient(concurrentDomainRequestLimit);
 
 /**
  * @swagger
@@ -20,7 +20,7 @@ const httpClient = new HttpClient(concurrentDomianRequestLimit);  // Use appropr
  *             properties:
  *               url:
  *                 type: string
- *                 example: 'http://example.com'
+ *                 example: 'https://httpbin.org/get'
  *               method:
  *                 type: string
  *                 example: 'GET'
@@ -49,7 +49,8 @@ proxyRouter.post('/proxy', async (req: Request, res: Response) => {
         if (!url) {
             return res.status(400).json({ error: 'URL is required' });
         }
-
+        // TODO - Add validation for URL
+        // TODO - Get the Response code from the call to the URL
         const result = await httpClient.getData(url);
         console.log('test result is', result);
 
