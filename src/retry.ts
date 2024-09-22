@@ -11,7 +11,7 @@ export const retryWithBackoff = async <T>(
         } catch (error: any) {
             // If the maximum number of retries is reached, Throw custom error
             if (i === retries - 1) {
-                throw new Error(`Remote server is not responding ${error.message}`);
+                throw new Error(`Remote server is not responding. Error recieved: ${error.message}`);
             }
 
             // Calculate backoff delay
