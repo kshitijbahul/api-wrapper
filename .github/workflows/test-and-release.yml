@@ -1,5 +1,5 @@
 name: Test and Release
-
+run-name: ${{ github.actor }} made a commit, testing and building new version for ${{ github.repository }}
 on:
   push:
     branches:
@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -27,10 +30,13 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Explicitly grant write permission to contents
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
