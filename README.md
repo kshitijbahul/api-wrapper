@@ -31,6 +31,24 @@ the API documentation at: [http://localhost:3000/api-docs/](http://localhost:300
 
 > **Note:** If you have changed the port in the step ***Build docker Image***, change the port in the link above accordingly.
 
+### Testing 
+
+The App can be tested in the following ways
+
+1. ***Using the API docs page***:
+   
+   Using the link to the API documentation above to test the API
+2. ***Using the Curl Requests***:
+   
+   Here is a sample curl request that can be used to test the application
+   ```sh
+   curl --location 'localhost:3000/api/v1/proxy'
+   --header 'Content-Type: application/json' \
+   --data '{
+    "url": "https://httpbin.org/get"
+    }'
+
+
 ### Assumptions 
 - We get only HTTPS or HTTP requests.
 - We receive GET requests.
@@ -41,5 +59,5 @@ the API documentation at: [http://localhost:3000/api-docs/](http://localhost:300
 - Build Process
 - Sharing the deliverable
 - Instructions to run locally
-
+- Remove Generic types and have strict types 
 
