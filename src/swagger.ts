@@ -19,12 +19,11 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: process.env.NODE_ENV === 'production' ? ['./dist/routes/proxy.js'] : ['./src/routes/proxy.ts'],
+  apis: ['./dist/routes/proxy.js'],
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 export const setupSwagger = (app: Express) => {
-  console.log('swaggerDocs', swaggerDocs);  
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 };
