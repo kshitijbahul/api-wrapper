@@ -1,7 +1,7 @@
 import express from 'express';
 import proxyRouter from './routes/proxy';
 import { applicationPort, basePath } from './configs';
-import { setupSwagger } from './swagger';
+import { setupSwagger } from './docs/swagger';
 
 const app = express();
 app.use(express.json());

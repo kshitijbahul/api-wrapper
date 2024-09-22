@@ -2,14 +2,14 @@ import {
     describe, expect, test,
     beforeAll, beforeEach, afterAll,
 } from '@jest/globals';
-import HttpClient from '../src/httpClient';
-import { retryWithBackoff } from '../src/retry';
+import HttpClient from '../src/HttpClient/HttpClient';
+import { retryWithBackoff } from '../src/utils/retry.utils';
 
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
 
 // Mocking retryWithBackoff
-jest.mock('../src/retry', () => ({
+jest.mock('../src/utils/retry.utils', () => ({
     retryWithBackoff: jest.fn(),
 }));
 
@@ -38,7 +38,7 @@ describe('Test HttpClient Wrapper', () => {
             ok: true,
             json: jest.fn().mockResolvedValue({ success: true }),
         });
-        const data = await httpClient.getData(url);
+        const data = await httpClient.get(url);
         expect(data).toEqual({ success: true });
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(url);
@@ -54,7 +54,7 @@ describe('Test HttpClient Wrapper', () => {
             json: jest.fn(),
         });
 
-        await expect(httpClient.getData(url)).rejects.toThrow('HTTP error! status: 500');
+        await expect(httpClient.get(url)).rejects.toThrow('Error from upstream API 500');
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
@@ -69,7 +69,7 @@ describe('Test HttpClient Wrapper', () => {
         });
 
         // Make 2 requests, one with lowercase and one with uppercase URL
-        const [data1, data2] = await Promise.all([httpClient.getData(urlLowerCase), httpClient.getData(urlUpperCase)]);
+        const [data1, data2] = await Promise.all([httpClient.get(urlLowerCase), httpClient.get(urlUpperCase)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
@@ -89,7 +89,7 @@ describe('Test HttpClient Wrapper', () => {
         });
 
         // Make 2 requests, one with lowercase and one with mixed-case URL
-        const [data1, data2] = await Promise.all([httpClient.getData(urlLowerCase), httpClient.getData(urlMixedCase)]);
+        const [data1, data2] = await Promise.all([httpClient.get(urlLowerCase), httpClient.get(urlMixedCase)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
@@ -108,7 +108,7 @@ describe('Test HttpClient Wrapper', () => {
             json: jest.fn().mockResolvedValue({ success: true }),
         });
 
-        const [data1, data2] = await Promise.all([httpClient.getData(urlHttps), httpClient.getData(urlHttp)]);
+        const [data1, data2] = await Promise.all([httpClient.get(urlHttps), httpClient.get(urlHttp)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
@@ -127,7 +127,7 @@ describe('Test HttpClient Wrapper', () => {
         });
 
         // Initiate two concurrent requests for the same URL
-        const [data1, data2] = await Promise.all([httpClient.getData(url), httpClient.getData(url)]);
+        const [data1, data2] = await Promise.all([httpClient.get(url), httpClient.get(url)]);
 
         expect(data1).toEqual({ success: true });
         expect(data2).toEqual({ success: true });
@@ -153,7 +153,7 @@ describe('Test HttpClient Wrapper', () => {
         );
 
         // Initiate four requests; the fourth should be queued due to concurrency limit
-        const promises = urls.map((url) => httpClient.getData(url));
+        const promises = urls.map((url) => httpClient.get(url));
 
         // Initially, only 2 fetch calls should be made due to concurrency limit
         expect(fetch).toHaveBeenCalledTimes(2);
@@ -189,7 +189,7 @@ describe('Test HttpClient Wrapper', () => {
             })
         );
 
-        const promises = urls.map((url) => httpClient.getData(url));
+        const promises = urls.map((url) => httpClient.get(url));
 
         // All should resolve with the same mocked result
         const results = await Promise.all(promises);

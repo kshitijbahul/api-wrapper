@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import HttpClient from '../httpClient';
+import HttpClient from '../HttpClient/HttpClient';
 import { concurrentDomainRequestLimit } from '../configs';
 
 const proxyRouter = Router();
@@ -59,7 +59,7 @@ proxyRouter.post('/proxy', async (req: Request, res: Response) => {
             return res.status(400).json({ error: `Invalid URL : ${url}` });
         }
         // TODO - Get the Response code from the call to the URL
-        const result = await httpClient.getData(url);
+        const result = await httpClient.get(url);
         console.log('test result is', result);
 
         res.status(200).json(result);
