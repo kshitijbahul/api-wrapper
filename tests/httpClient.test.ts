@@ -1,6 +1,7 @@
 import { describe, expect, test, beforeEach, afterAll } from "@jest/globals";
 import HttpClient from "../src/HttpClient/HttpClient";
 import { retryWithBackoff } from "../src/utils/retry.utils";
+import ApiResponse from "../src/ApiResponse";
 
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;
@@ -25,7 +26,12 @@ describe("Test HttpClient Constuctor", () => {
 
 describe("Test HttpClient Wrapper", () => {
 	let httpClient: HttpClient;
-
+	const successJsonResponse = { success: true };
+	const expectedSuccessResponse = new ApiResponse(
+		200,
+		successJsonResponse,
+		""
+	);
 	beforeEach(() => {
 		httpClient = new HttpClient(2); // Set concurrency limit to 2
 		// Mock retryWithBackoff to directly call the provided function
@@ -41,10 +47,11 @@ describe("Test HttpClient Wrapper", () => {
 		// Mock fetch response
 		(fetch as jest.Mock).mockResolvedValueOnce({
 			ok: true,
-			json: jest.fn().mockResolvedValue({ success: true }),
+			status: 200,
+			json: jest.fn().mockResolvedValue(successJsonResponse),
 		});
 		const data = await httpClient.get(url);
-		expect(data).toEqual({ success: true });
+		expect(data).toEqual(expectedSuccessResponse);
 		expect(fetch).toHaveBeenCalledTimes(1);
 		expect(fetch).toHaveBeenCalledWith(url);
 	});
@@ -72,7 +79,8 @@ describe("Test HttpClient Wrapper", () => {
 		// Mock fetch response
 		(fetch as jest.Mock).mockResolvedValueOnce({
 			ok: true,
-			json: jest.fn().mockResolvedValue({ success: true }),
+			status: 200,
+			json: jest.fn().mockResolvedValue(successJsonResponse),
 		});
 
 		// Make 2 requests, one with lowercase and one with uppercase URL
@@ -81,8 +89,8 @@ describe("Test HttpClient Wrapper", () => {
 			httpClient.get(urlUpperCase),
 		]);
 
-		expect(data1).toEqual({ success: true });
-		expect(data2).toEqual({ success: true });
+		expect(data1).toEqual(expectedSuccessResponse);
+		expect(data2).toEqual(expectedSuccessResponse);
 
 		// Only one fetch call should be made due to URL normalization
 		expect(fetch).toHaveBeenCalledTimes(1);
@@ -95,7 +103,8 @@ describe("Test HttpClient Wrapper", () => {
 		// Mock fetch response
 		(fetch as jest.Mock).mockResolvedValueOnce({
 			ok: true,
-			json: jest.fn().mockResolvedValue({ success: true }),
+			status: 200,
+			json: jest.fn().mockResolvedValue(successJsonResponse),
 		});
 
 		// Make 2 requests, one with lowercase and one with mixed-case URL
@@ -104,8 +113,8 @@ describe("Test HttpClient Wrapper", () => {
 			httpClient.get(urlMixedCase),
 		]);
 
-		expect(data1).toEqual({ success: true });
-		expect(data2).toEqual({ success: true });
+		expect(data1).toEqual(expectedSuccessResponse);
+		expect(data2).toEqual(expectedSuccessResponse);
 
 		// Only one fetch call should be made due to URL normalization
 		expect(fetch).toHaveBeenCalledTimes(1);
@@ -114,20 +123,22 @@ describe("Test HttpClient Wrapper", () => {
 	test("Should not treat https and http URLs as the same", async () => {
 		const urlHttps = "https://httpbin.org/get?param=1";
 		const urlHttp = "http://Httpbin.org/Get?Param=1";
-
+		const successJsonResponse = { success: true };
 		// Mock fetch response
 		(fetch as jest.Mock).mockResolvedValue({
 			ok: true,
-			json: jest.fn().mockResolvedValue({ success: true }),
+			status: 200,
+			json: jest.fn().mockResolvedValue(successJsonResponse),
 		});
-
+		const expectedResponse = new ApiResponse(200, successJsonResponse, "");
 		const [data1, data2] = await Promise.all([
 			httpClient.get(urlHttps),
 			httpClient.get(urlHttp),
 		]);
-
-		expect(data1).toEqual({ success: true });
-		expect(data2).toEqual({ success: true });
+		console.log(data1);
+		console.log(expectedResponse);
+		expect(data1).toEqual(expectedResponse);
+		expect(data2).toEqual(expectedResponse);
 
 		// Two fetch calls should be made since https and http URLs are different
 		expect(fetch).toHaveBeenCalledTimes(2);
@@ -139,7 +150,8 @@ describe("Test HttpClient Wrapper", () => {
 		// Mock fetch
 		(fetch as jest.Mock).mockResolvedValueOnce({
 			ok: true,
-			json: jest.fn().mockResolvedValue({ success: true }),
+			status: 200,
+			json: jest.fn().mockResolvedValue(successJsonResponse),
 		});
 
 		// Initiate two concurrent requests for the same URL
@@ -148,8 +160,8 @@ describe("Test HttpClient Wrapper", () => {
 			httpClient.get(url),
 		]);
 
-		expect(data1).toEqual({ success: true });
-		expect(data2).toEqual({ success: true });
+		expect(data1).toEqual(expectedSuccessResponse);
+		expect(data2).toEqual(expectedSuccessResponse);
 
 		// Only one fetch call should be made since the same URL is in-flight
 		expect(fetch).toHaveBeenCalledTimes(1);
@@ -167,7 +179,8 @@ describe("Test HttpClient Wrapper", () => {
 		(fetch as jest.Mock).mockImplementation(() =>
 			Promise.resolve({
 				ok: true,
-				json: jest.fn().mockResolvedValue({ success: true }),
+				status: 200,
+				json: jest.fn().mockResolvedValue(successJsonResponse),
 			})
 		);
 
@@ -188,7 +201,7 @@ describe("Test HttpClient Wrapper", () => {
 		const results = await Promise.all(promises);
 
 		results.forEach((result) => {
-			expect(result).toEqual({ success: true });
+			expect(result).toEqual(expectedSuccessResponse);
 		});
 	});
 
@@ -204,7 +217,8 @@ describe("Test HttpClient Wrapper", () => {
 		(fetch as jest.Mock).mockImplementation(() =>
 			Promise.resolve({
 				ok: true,
-				json: jest.fn().mockResolvedValue({ success: true }),
+				status: 200,
+				json: jest.fn().mockResolvedValue(successJsonResponse),
 			})
 		);
 
@@ -215,7 +229,7 @@ describe("Test HttpClient Wrapper", () => {
 
 		expect(fetch).toHaveBeenCalledTimes(4); // Ensure 4 calls were made
 		results.forEach((result) => {
-			expect(result).toEqual({ success: true });
+			expect(result).toEqual(expectedSuccessResponse);
 		});
 	});
 });

@@ -5,10 +5,11 @@ import { getDomainKeyFromUrl } from "../utils/url.utils";
 import RequestQueue from "../RequestQueue";
 import DomainRequestCounter from "../DomainRequestCounter";
 import ExternalAPIError from "../errors/ExternalAPI.error";
+import ApiResponse from "../ApiResponse";
 
 class HttpClient implements IHttpClient {
 	private concurrentDomainRequestLimit: number;
-	private requestsInProgress: Map<string, Promise<any>>;
+	private requestsInProgress: Map<string, Promise<ApiResponse>>;
 	private requestQueue: RequestQueue;
 	private domainRequestCounter: DomainRequestCounter;
 
@@ -22,7 +23,7 @@ class HttpClient implements IHttpClient {
 		this.domainRequestCounter = new DomainRequestCounter();
 	}
 
-	async get(requestUrl: string): Promise<any> {
+	async get(requestUrl: string): Promise<ApiResponse> {
 		const url = requestUrl.toLowerCase();
 		const domainIdentifier = getDomainKeyFromUrl(url);
 
@@ -31,7 +32,8 @@ class HttpClient implements IHttpClient {
 				"Found request in progress. Returning existing promise",
 				url
 			);
-			return this.requestsInProgress.get(url);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			return this.requestsInProgress.get(url)!;
 		}
 
 		if (
@@ -48,7 +50,10 @@ class HttpClient implements IHttpClient {
 		return this.performRequest(url, domainIdentifier);
 	}
 
-	private queueRequest(url: string, domainIdentifier: string): Promise<any> {
+	private queueRequest(
+		url: string,
+		domainIdentifier: string
+	): Promise<ApiResponse> {
 		return new Promise((resolve, reject) => {
 			console.log(
 				"Max requests in progress. Queueing request for URL",
@@ -65,20 +70,11 @@ class HttpClient implements IHttpClient {
 	private async performRequest(
 		url: string,
 		domainIdentifier: string
-	): Promise<any> {
+	): Promise<ApiResponse> {
 		this.domainRequestCounter.increment(domainIdentifier);
 
-		const requestPromise = retryWithBackoff(
-			() =>
-				fetch(url).then(async (response) => {
-					if (!response.ok) {
-						throw new ExternalAPIError(
-							`Error from upstream API ${response.status}`,
-							response.status
-						);
-					}
-					return response.json();
-				}),
+		const requestPromise = retryWithBackoff<ApiResponse>(
+			() => this.callFetch(url),
 			retries,
 			retryDelay
 		).finally(() => {
@@ -89,7 +85,19 @@ class HttpClient implements IHttpClient {
 
 		return requestPromise;
 	}
-
+	private async callFetch(url: string): Promise<ApiResponse> {
+		return fetch(url).then((response) => {
+			if (!response.ok) {
+				throw new ExternalAPIError(
+					`Error from upstream API ${response.status}`,
+					response.status
+				);
+			}
+			return response.json().then((responseBody) => {
+				return new ApiResponse(response.status, responseBody, "");
+			});
+		});
+	}
 	private onRequestComplete(url: string, domainIdentifier: string): void {
 		this.domainRequestCounter.decrement(domainIdentifier);
 		this.requestsInProgress.delete(url);
