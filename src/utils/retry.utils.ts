@@ -12,7 +12,7 @@ export const retryWithBackoff = async <T>(
 		try {
 			// Call the provided function
 			return await fn();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.log(`Error occured: ${error}`);
 			if (
 				error instanceof ExternalAPIError &&

@@ -1,10 +1,10 @@
 import { describe, expect, test, beforeEach } from "@jest/globals";
 import RequestQueue from "../src/RequestQueue";
-import queueRequestType from "../src/types/queueRequest";
+import QueueRequestType from "../src/types/queueRequest";
 
 describe("RequestQueue", () => {
 	let requestQueue: RequestQueue;
-	let mockRequest: queueRequestType;
+	let mockRequest: QueueRequestType;
 
 	beforeEach(() => {
 		requestQueue = new RequestQueue();
