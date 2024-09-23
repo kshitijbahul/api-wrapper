@@ -56,6 +56,7 @@ proxyRouter.post('/proxy', async (req: Request, res: Response) => {
                 return res.status(400).json({ error: 'Invalid URL protocol' });
             }
         } catch (error) {
+            console.error(`Invalid URL: ${url} . Error Message is : ${(error as Error).message}`);
             return res.status(400).json({ error: `Invalid URL : ${url}` });
         }
         // TODO - Get the Response code from the call to the URL

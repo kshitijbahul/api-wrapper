@@ -1,6 +1,6 @@
 import {
     describe, expect, test,
-    beforeAll, beforeEach, afterAll,
+    beforeEach,
 } from '@jest/globals';
 import RequestQueue from '../src/RequestQueue';
 import queueRequestType from '../src/types/queueRequest';

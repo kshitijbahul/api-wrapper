@@ -1,6 +1,6 @@
 import {
     describe, expect, test,
-    beforeAll, beforeEach, afterAll,
+    beforeEach, afterAll,
 } from '@jest/globals';
 import HttpClient from '../src/HttpClient/HttpClient';
 import { retryWithBackoff } from '../src/utils/retry.utils';
@@ -13,12 +13,19 @@ jest.mock('../src/utils/retry.utils', () => ({
     retryWithBackoff: jest.fn(),
 }));
 
+describe('Test HttpClient Constuctor', () => {
+    test('Should return error if the number of concurrent request is negitive', async () => {
+        expect(() => new HttpClient(-1)).toThrow('Concurrency limit must be a positive integer');
+    });
+    test('Should throw an error if concurrency limit is zero', () => {
+        expect(() => new HttpClient(0)).toThrow('Concurrency limit must be a positive integer');
+    });
+});
+
 describe('Test HttpClient Wrapper', () => {
     let httpClient: HttpClient;
 
-    beforeAll(() => {
-        // Any global setup if needed
-    });
+    
 
     beforeEach(() => {
         httpClient = new HttpClient(2); // Set concurrency limit to 2
@@ -30,7 +37,6 @@ describe('Test HttpClient Wrapper', () => {
     afterAll(() => {
         jest.resetAllMocks();
     });
-
     test('Should get data from a URL', async () => {
         const url = 'https://httpbin.org/get?param=1';
         // Mock fetch response

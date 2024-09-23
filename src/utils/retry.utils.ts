@@ -6,8 +6,8 @@ const retryableStatusCodes = [500, 502, 503, 504, 429 ];
 
 export const retryWithBackoff = async <T>(
     fn: () => Promise<T>, 
-    retries: number = 3, 
-    delay: number = 1000
+    retries = 3, 
+    delay = 1000
 ): Promise<T> => {
     for (let i = 0; i < retries; i++) {
         try {

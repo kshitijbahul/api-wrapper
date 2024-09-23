@@ -1,7 +1,7 @@
 import DomainRequestCounter from '../src/DomainRequestCounter';
 import {
     describe, expect, test,
-    beforeAll, beforeEach, afterAll,
+    beforeEach,
 } from '@jest/globals';
 describe('DomainRequestCounter', () => {
     let counter: DomainRequestCounter;

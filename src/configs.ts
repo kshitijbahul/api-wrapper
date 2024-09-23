@@ -12,7 +12,7 @@ export function sanitizeInteger(value: string | undefined, defaultValue: number)
 // Port on which the application will run
 export const applicationPort: number = sanitizeInteger(process.env.APPLICATION_PORT, 3000);
 // Base path for the API
-export const basePath: string = '/api/v1';
+export const basePath = '/api/v1';
 // Maximum number of concurrent requests to a domain
 export const concurrentDomainRequestLimit: number = sanitizeInteger(process.env.CONCURRENT_DOMAIN_REQUEST_LIMIT, 3);
 // Maximum number of requests that can be queued for a domain

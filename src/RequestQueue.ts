@@ -1,7 +1,7 @@
 import queueRequestType from './types/queueRequest';
 
 class RequestQueue {
-    private requestQueue: Map<string, Array<queueRequestType>>;
+    private requestQueue: Map<string, queueRequestType[]>;
 
     constructor() {
         this.requestQueue = new Map();
@@ -11,6 +11,8 @@ class RequestQueue {
         if (!this.requestQueue.has(domainIdentifier)) {
             this.requestQueue.set(domainIdentifier, []);
         }
+        // disable eslint for the next line because we know that the key exists
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.requestQueue.get(domainIdentifier)!.push(request);
     }
 
@@ -19,6 +21,7 @@ class RequestQueue {
     }
 
     hasRequests(domainIdentifier: string): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.requestQueue.has(domainIdentifier) && this.requestQueue.get(domainIdentifier)!.length > 0;
     }
 }
