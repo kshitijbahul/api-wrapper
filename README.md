@@ -124,9 +124,9 @@ The App can be tested in the following ways
 
 -   Adding Limit on total queue depth and total queue depth per domain
 -   Response and Request objects
+-   Use Specific types
 -   Timeouts
 -   Return Get Response status to the UI
--   Use more Targeted types
 
 ## Assumptions
 
