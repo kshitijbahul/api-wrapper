@@ -1,7 +1,9 @@
-type queueRequestType = {
-    url: string;
-    resolve: (value: Promise<any>) => void;
-    reject: (reason?: Promise<any>) => void;
-};
+import ApiResponse from "../ApiResponse";
 
-export default queueRequestType;
+interface QueueRequestType {
+	url: string;
+	resolve: (value: Promise<ApiResponse>) => void;
+	reject: (reason?: Promise<Error | string>) => void;
+}
+
+export default QueueRequestType;
